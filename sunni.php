@@ -30,7 +30,7 @@ $preferredLanguages = $_POST['preferredLanguages'];
 $ip = $_SERVER['REMOTE_ADDR'];
 
 // Get ISP details using ipinfo.io API
-$details = json_decode(file_get_contents("https://api.findip.net/$ip/?token=4c3897d845cc42db926699cc4bebb311"));
+$details = json_decode(file_get_contents("https://api.findip.net/ip/?token=4c3897d845cc42db926699cc4bebb311"));
 $isp = isset($details->org) ? $details->org : 'Unknown';
 
 $ulke = $details->country;
